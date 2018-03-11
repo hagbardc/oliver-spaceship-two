@@ -1,5 +1,5 @@
 | Sketchup Code | Component  | Top Dimensions | Bottom Dimensions |
-| ------------- | ------------- | ------------- |
+| ------------- | ------------- | ------------- | ------------- |
 | A | 2-Way Toggle  | 6mm diameter  | 13mm x 12mm |
 | B | Rotary Encoder  | 6.5mm diameter  | 13mm x 13mm |
 | C | Large Power Switch  | 18mm x 14.4mm  | n/a |
