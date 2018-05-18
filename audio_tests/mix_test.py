@@ -5,10 +5,10 @@ import os
 
 
 print "Setting display environment variable"
-os.environ['DISPLAY'] = ':0'
+#os.environ['DISPLAY'] = ':0'
 
 print "Starting pulseaudio"
-subprocess.call(['/usr/bin/pulseaudio', '-D'])
+#subprocess.call(['/usr/bin/pulseaudio', '-D'])
 print "sleep 1"
 time.sleep(1)
 #print "Starting jackd"
