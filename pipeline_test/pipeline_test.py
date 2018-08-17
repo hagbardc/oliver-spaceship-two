@@ -2,11 +2,13 @@ from audiocontroller.audiocontroller import audio_queue
 from audiocontroller.audiocontroller import audio_controller_worker
 from serialprocessor.serialprocessor import SerialProcessor
 import threading
+import time
 import logging
 
 logging.basicConfig(format='%(filename)s.%(lineno)d:%(levelname)s:%(message)s',
                     level=logging.DEBUG)
-serial_config = {'port_paths': ['/dev/ttyUSB0', '/dev/ttyACM0']}
+#  serial_config = {'port_paths': ['/dev/ttyUSB1', '/dev/ttyACM1']}
+serial_config = {'port_paths': ['/dev/ttyACM0', '/dev/ttyUSB0']}
 
 
 audio_config = [
@@ -34,5 +36,6 @@ try:
     while(True):
         pass
 except (KeyboardInterrupt, SystemExit):
-    audio_queue.put({'action': 'end_thread'})
     sp.killall()
+    time.sleep(1)
+    audio_queue.put({'action': 'end_thread'})

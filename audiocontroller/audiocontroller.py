@@ -63,6 +63,7 @@ def audio_controller_worker(config):
             elif soundInfo['action'] == 'stop':
                 ac.stopSound(soundInfo['name'])
             elif soundInfo['action'] == 'end_thread':
+                logging.debug("Ending audio worker")
                 return  # special message to end the thread
         except KeyError:
             logging.error("KeyError - soundInfo %s improperly structured" %
@@ -94,6 +95,8 @@ class AudioController:
         num_times = 0
         if loop:
             num_times = -1
+
+        logging.debug("Playing sound registered as %s" % registry_name)
         self._audio_registry[registry_name]['sound'].play(loops=num_times)
 
     def stopSound(self, registry_name):

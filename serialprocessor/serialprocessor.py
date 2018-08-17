@@ -1,5 +1,6 @@
 import logging
 import json
+import os
 import Queue
 import serial
 import threading
@@ -45,6 +46,7 @@ class SerialProcessor:
                  controller_baud=19200,
                  log_level=logging.WARNING):
 
+
         self._logger = SerialProcessor._logger
         self._logger.setLevel(log_level)
 
@@ -53,7 +55,13 @@ class SerialProcessor:
         self._audio_controller_queue = audio_controller_queue
 
         # Paths to serial ports
-        self._port_paths = config['port_paths']
+        # TODO:  Check for existence of paths, and exit if not found
+        # TODO: Auto discover USB and ACM paths
+        if 'port_paths' not in config:
+            self.autoAssignUSBSerialPorts()
+        else:
+            self._port_paths = config['port_paths']
+
         self._serial_ports = []
         for p in self._port_paths:
             self._logger.info('Connecting serial port at %s' % p)
@@ -72,6 +80,12 @@ class SerialProcessor:
             self._threads.append(t)
             self._logger.info("Starting thread for %s" % (p[0]))
             t.start()
+
+    # Does an ls -1 /dev/ and picks up any ttyUSB or ttyACM ports
+    def autoAssignUSBSerialPorts(self):
+        files = os.listdir('/dev/')
+        for name in files:
+            print(name)
 
     @staticmethod
     def terminateFlag():

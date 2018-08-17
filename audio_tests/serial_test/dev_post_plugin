@@ -223,10 +223,10 @@ crw-rw-rw-  1 root root       10,  54 Jul 13 19:49 vboxdrvu
 crw-------  1 root root       10,  55 Jul 13 19:49 vboxdrv
 crw-------  1 root root       10,  53 Jul 13 19:49 vboxnetctl
 crw--w----  1 root tty         4,   1 Jul 13 19:50 tty1
-crw-rw-rw-  1 root tty         5,   0 Jul 15 14:58 tty
-drwxr-xr-x  4 root root            80 Jul 23 09:04 serial
-crw-rw----  1 root dialout   188,   0 Jul 23 09:05 ttyUSB0
-drwxrwxrwt  2 root root           320 Jul 23 09:06 shm
-crw-rw----  1 root dialout   166,   0 Jul 23 09:06 ttyACM0
-drwxr-xr-x  2 root root          4520 Jul 23 09:06 char
-crw-rw-rw-  1 root tty         5,   2 Jul 23 09:06 ptmx
+crw-rw-rw-  1 root tty         5,   0 Jul 23 09:23 tty
+drwxrwxrwt  2 root root           320 Jul 23 16:24 shm
+crw-rw----  1 root dialout   166,   0 Jul 23 16:24 ttyACM0
+drwxr-xr-x  4 root root            80 Jul 23 16:24 serial
+crw-rw----  1 root dialout   188,   0 Jul 23 16:25 ttyUSB0
+drwxr-xr-x  2 root root          4520 Jul 23 16:25 char
+crw-rw-rw-  1 root tty         5,   2 Jul 23 16:25 ptmx
