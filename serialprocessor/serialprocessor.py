@@ -1,5 +1,5 @@
-import logging
 import json
+import logging
 import os
 import Queue
 import serial
@@ -46,7 +46,6 @@ class SerialProcessor:
                  controller_baud=19200,
                  log_level=logging.WARNING):
 
-
         self._logger = SerialProcessor._logger
         self._logger.setLevel(log_level)
 
@@ -57,10 +56,16 @@ class SerialProcessor:
         # Paths to serial ports
         # TODO:  Check for existence of paths, and exit if not found
         # TODO: Auto discover USB and ACM paths
+        self._port_paths = []
         if 'port_paths' not in config:
             self.autoAssignUSBSerialPorts()
         else:
             self._port_paths = config['port_paths']
+
+        if not self._port_paths:
+            self._logger.error('No paths in config, or auto-discovered.')
+            self._logger.error('Aborting SerialProcessor instantiation')
+            raise RuntimeError('No serial port paths in config or system')
 
         self._serial_ports = []
         for p in self._port_paths:
@@ -83,9 +88,16 @@ class SerialProcessor:
 
     # Does an ls -1 /dev/ and picks up any ttyUSB or ttyACM ports
     def autoAssignUSBSerialPorts(self):
-        files = os.listdir('/dev/')
+        dev_path = '/dev/'
+        files = os.listdir(dev_path)
         for name in files:
-            print(name)
+            if name[0:6] in ['ttyACM', 'ttyUSB']:
+                full_path = dev_path+name
+                self._logger.info('Adding %s to _port_paths' % full_path)
+                self._port_paths.append(full_path)
+
+        if not self._port_paths:
+            self._logger.warn('No serial paths found in %s' % dev_path)
 
     @staticmethod
     def terminateFlag():
