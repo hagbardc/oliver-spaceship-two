@@ -1,3 +1,12 @@
+"""
+Contains components to handle consumption of messages from a serial connection, 
+and publication of those messages to a queue.  Ideally, that queue is consumed
+by another application which pulls those messages off the queue and does something.
+Like play a sound
+"""
+
+
+
 import logging
 import json
 import os
@@ -11,6 +20,16 @@ logger.setLevel(logging.DEBUG)
 
 def serial_processor_worker(serial_name, serial_port, audio_controller_queue,
                             logger=logging.getLogger()):
+    """ Worker function to publish data coming in from a serial port to a queue
+    
+    Arguments:
+        serial_name {str} -- Name associated with the serial port in `serial_port`
+        serial_port {serial.Serial} -- Serial port from which to read data for publishing to the audio queue
+        audio_controller_queue {queue.Queue} -- Queue onto which to publish the messages from the serial line
+    
+    Keyword Arguments:
+        logger {logging.Logger} -- Logging object (default: {logging.getLogger()})
+    """
 
     while not SerialProcessor.terminateFlag():
         line = serial_port.readline()
@@ -36,6 +55,8 @@ def serial_processor_worker(serial_name, serial_port, audio_controller_queue,
 
 
 class SerialProcessor:
+    """Opens up connections to specified serial ports, and passes on those on to a specified queue
+    """
 
     _terminate = False
     _logger = logging.getLogger()
@@ -45,6 +66,25 @@ class SerialProcessor:
     def __init__(self, config, audio_controller_queue,
                  controller_baud=19200,
                  log_level=logging.WARNING):
+        """Initialize the SerialProcessor object
+        
+        Arguments:
+            config {dict} -- Configuration dictionary for the object
+            audio_controller_queue {queue.Queue} -- Queue onto which messages from the serial line will be passed
+        
+        Keyword Arguments:
+            controller_baud {int} -- Connection speed for the serial ports (default: {19200})
+            log_level {logging.LogLevel} -- Log level (default: {logging.WARNING})
+        
+        example usage:
+
+        q = queue.Queue()
+        serial_config = {'port_paths': ['/dev/ttyUSB0', '/dev/ttyACM0']}
+
+        sp = SerialProcessor(config=serial_config,
+                            audio_controller_queue=q,
+                            log_level=logging.INFO)
+        """
 
 
         self._logger = SerialProcessor._logger
