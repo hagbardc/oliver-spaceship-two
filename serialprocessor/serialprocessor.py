@@ -14,6 +14,8 @@ import Queue
 import serial
 import threading
 
+from messagemapper import MessageMapper
+
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
@@ -64,6 +66,8 @@ class SerialProcessor:
     _logger = logging.getLogger()
     _logger.setLevel(logging.WARNING)
 
+    _message_mapper = MessageMapper(logger=_logger)
+
     # Config is dict:  { 'port_paths': []}
     def __init__(self, config, audio_controller_queue,
                  controller_baud=19200,
@@ -95,6 +99,7 @@ class SerialProcessor:
         self._logger.debug('Inside SerialProcessor constructor')
         self._controller_baud = controller_baud
         self._audio_controller_queue = audio_controller_queue
+
 
         # Paths to serial ports
         # TODO:  Check for existence of paths, and exit if not found
@@ -161,18 +166,7 @@ class SerialProcessor:
             event_message = json.loads(msg_json.decode('utf-8'))
             SerialProcessor._logger.info("Message: %s" % event_message)
 
-            audio_command = {'action': 'play', 'loop': False}
-
-            # Here we're actually mapping messages to sounds configured by the audiocontroller
-            if event_message['component'] == 'switch-42-49' and event_message['action'] == 'switch':
-                if event_message['value'] == 1:
-                    audio_command['name'] = 'ard_1_down'
-                elif event_message['value'] == 0:
-                    audio_command['name'] = 'ard_1_up'
-            elif event_message['component'] == 'system' and event_message['action'] == 'startup':
-                SerialProcessor._logger.debug("Setting audio_command to ard_2_up")
-                audio_command['name'] = 'ard_2_up'
-
+            audio_command = SerialProcessor._message_mapper.getAudiocontrollerMessageForEvent(event_message)
 
             SerialProcessor._logger.debug("audio_command [%s]" % audio_command)
             return audio_command

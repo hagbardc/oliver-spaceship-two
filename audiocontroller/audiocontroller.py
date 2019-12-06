@@ -96,6 +96,11 @@ class AudioController:
         if loop:
             num_times = -1
 
+
+        if registry_name not in self._audio_registry:
+            logging.error('Could not found [%s] in sound registry. No action taken' % registry_name)
+            return
+
         logging.debug("Playing sound registered as %s" % registry_name)
         self._audio_registry[registry_name]['sound'].play(loops=num_times)
 
@@ -105,6 +110,9 @@ class AudioController:
         Keyword arguments:
         registry_name -- the string used to refer to a registered audio clip
         """
+        if registry_name not in self._audio_registry:
+            logging.error('Could not found [%s] in sound registry. No action taken' % registry_name)
+            return
         self._audio_registry[registry_name]['sound'].stop()
 
 
