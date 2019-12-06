@@ -8,17 +8,16 @@ import logging
 logging.basicConfig(format='%(filename)s.%(lineno)d:%(levelname)s:%(message)s',
                     level=logging.DEBUG)
 #  serial_config = {'port_paths': ['/dev/ttyUSB1', '/dev/ttyACM1']}
-serial_config = {'port_paths': ['/dev/ttyACM0', '/dev/ttyUSB0']}
+#serial_config = {'port_paths': ['/dev/ttyACM0', '/dev/ttyUSB0']}
+serial_config = {'port_paths': ['/dev/ttyUSB0']}
 
 
 audio_config = [
-            {'name': 'ard_1_down', 'sound': 'audio_files/mathbutton_red.wav',
+            {'name': 'switch_flipped', 'sound': 'audio_files/mathbutton_yellow.wav',
              'loopable': False},
-            {'name': 'ard_1_up', 'sound': 'audio_files/mathbutton_green.wav',
+            {'name': 'button_pressed', 'sound': 'audio_files/mathbutton_green.wav',
              'loopable': False},
-            {'name': 'ard_2_down', 'sound': 'audio_files/mathbutton_yellow.wav',
-             'loopable': False},
-            {'name': 'ard_2_up', 'sound': 'audio_files/missile_phase_1.wav',
+            {'name': 'system_activated', 'sound': 'audio_files/missile_phase_1.wav',
              'loopable': False}
             ]
 
