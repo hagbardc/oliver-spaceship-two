@@ -47,10 +47,12 @@ def serial_processor_worker(serial_name, serial_port, audio_controller_queue,
                 logger.debug("Publishing message onto audio_controller_queue")
                 audio_controller_queue.put(event_message)
 
-        except KeyError:
+        except KeyError as ke:
             logger.error("KeyError - serialInfo %s improperly structured"
                          % line)
-        except TypeError:
+            logger.error("%s" % ke.message)
+        except TypeError as err:
+            logger.error("Got type error: %s" % err.message)
             pass
 
 
@@ -137,32 +139,47 @@ class SerialProcessor:
 
     @staticmethod
     def processJson(serial_name, msg_json):
+        """This actually converts the json messages from the arduino to the audio control messages
+
+        The way this is constructed now, if we want to maintain state for the panel, we will need
+        to check the state in here and make an assessment of what sound should play given the 
+        arduino json message, and the current system state
+        
+        Arguments:
+            serial_name {str} -- Name of the serial connection over which the json messages were recieved (only used for logging)
+            msg_json {str} -- The json object sent in over the specified serial connection
+        
+        Returns:
+            [dict] -- Message to be passed to the audio controller.  Has keys 'name', 'action', and 'loop'
+        """
 
         SerialProcessor._logger.debug("processJson:%s: %s"
                                       % (serial_name, msg_json))
         try:
             SerialProcessor._logger.debug("Type of json_message is %s"
                                           % type(msg_json))
-            event_message = json.loads(msg_json.decode("utf-8"))
-            SerialProcessor._logger.info("Message: %s: %s"
-                                         % (event_message['name'],
-                                            event_message['action']))
+            event_message = json.loads(msg_json.decode('utf-8'))
+            SerialProcessor._logger.info("Message: %s" % event_message)
 
             audio_command = {'action': 'play', 'loop': False}
-            if event_message['name'] == 'arduino_1' and event_message['action'] == 'button_down':
-                audio_command['name'] = 'ard_1_down'
-            if event_message['name'] == 'arduino_1' and event_message['action'] == 'button_up':
-                audio_command['name'] = 'ard_1_up'
-            if event_message['name'] == 'arduino_2'and event_message['action'] == 'button_down':
-                audio_command['name'] = 'ard_2_down'
-            if event_message['name'] == 'arduino_2' and event_message['action'] == 'button_up':
+
+            # Here we're actually mapping messages to sounds configured by the audiocontroller
+            if event_message['component'] == 'switch-42-49' and event_message['action'] == 'switch':
+                if event_message['value'] == 1:
+                    audio_command['name'] = 'ard_1_down'
+                elif event_message['value'] == 0:
+                    audio_command['name'] = 'ard_1_up'
+            elif event_message['component'] == 'system' and event_message['action'] == 'startup':
+                SerialProcessor._logger.debug("Setting audio_command to ard_2_up")
                 audio_command['name'] = 'ard_2_up'
 
+
+            SerialProcessor._logger.debug("audio_command [%s]" % audio_command)
             return audio_command
         except ValueError:
             SerialProcessor._logger.error("Invalid JSON message on %s: %s"
                                           % (serial_name, msg_json))
         except Exception as err:
-            SerialProcessor._logger.error("Some other error hit: %s" % err)
+            SerialProcessor._logger.error("Some other error was hit: %s" % err.message)
 
         return None

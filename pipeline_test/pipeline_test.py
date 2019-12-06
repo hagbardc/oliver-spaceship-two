@@ -8,7 +8,8 @@ import logging
 logging.basicConfig(format='%(filename)s.%(lineno)d:%(levelname)s:%(message)s',
                     level=logging.DEBUG)
 #  serial_config = {'port_paths': ['/dev/ttyUSB1', '/dev/ttyACM1']}
-serial_config = {'port_paths': ['/dev/ttyACM0', '/dev/ttyUSB0']}
+#serial_config = {'port_paths': ['/dev/ttyACM0', '/dev/ttyUSB0']}
+serial_config = {'port_paths': ['/dev/ttyUSB0']}
 
 
 audio_config = [
