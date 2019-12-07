@@ -28,6 +28,7 @@ class MessageMapper(object):
         self.__eventMap = {}
         self._configureEventMap()
 
+
     def getAudiocontrollerMessageForEvent(self, event_message):
         """Given a microcontroller event, return the relevant message for the audiocontroller
         
@@ -50,8 +51,24 @@ class MessageMapper(object):
         """Populates __eventMap with mappings of component names to methods that should be called when that component sends a message
         """
 
-        self.__eventMap['switch-42-49'] = self._simpleEvent
-        self.__eventMap['system'] = self._simpleEvent
+        self.__eventMap['switch-42-49'] = self._switchEvent
+        self.__eventMap['key'] = self._simpleEvent
+
+
+    def _switchEvent(self, event_message):
+        """Transforms a incoming switch event to the relevant audiocontroller message
+        
+        Arguments:
+            event_message {dict} -- Message dictionary as extracted from json payload of arduino message
+
+        Returns:
+            {dict} -- Dictionary of {'action': <str>, 'name': <str>, 'loop': <bool>} which can be passed to audiocontroller
+        """
+
+        audiocontroller_message = {'action': 'play', 'loop': False}
+        if event_message['component'] == 'switch-42-49':
+            audiocontroller_message['name'] = 'switch_flipped'
+
 
 
 
@@ -67,10 +84,8 @@ class MessageMapper(object):
         """
 
         audiocontroller_message = {'action': 'play', 'loop': False}
-        if event_message['component'] == 'system':
+        if event_message['component'] == 'key' and event_message['value'] == 1:
             audiocontroller_message['name'] = 'system_activated'
-        elif event_message['component'] == 'switch-42-49':
-            audiocontroller_message['name'] = 'switch_flipped'
         
 
         self._logger.debug('Audiocontroller Message is [%s]' % audiocontroller_message)

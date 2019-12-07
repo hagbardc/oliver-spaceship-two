@@ -9,7 +9,8 @@ logging.basicConfig(format='%(filename)s.%(lineno)d:%(levelname)s:%(message)s',
                     level=logging.DEBUG)
 #  serial_config = {'port_paths': ['/dev/ttyUSB1', '/dev/ttyACM1']}
 #serial_config = {'port_paths': ['/dev/ttyACM0', '/dev/ttyUSB0']}
-serial_config = {'port_paths': ['/dev/ttyUSB0']}
+#serial_config = {'port_paths': ['/dev/ttyUSB0']}
+serial_config = {'port_paths': ['/dev/ttyACM0', '/dev/ttyACM1']}
 
 
 audio_config = [
@@ -27,7 +28,7 @@ audio_thread.start()
 
 sp = SerialProcessor(config=serial_config,
                      audio_controller_queue=audio_queue,
-                     log_level=logging.DEBUG)
+                     log_level=logging.INFO)
 
 sp.startSerialListening()
 
