@@ -9,10 +9,15 @@ logging.basicConfig(format='%(filename)s.%(lineno)d:%(levelname)s:%(message)s',
                     level=logging.DEBUG)
 #  serial_config = {'port_paths': ['/dev/ttyUSB1', '/dev/ttyACM1']}
 #serial_config = {'port_paths': ['/dev/ttyACM0', '/dev/ttyUSB0']}
-serial_config = {'port_paths': ['/dev/ttyUSB0']}
+#serial_config = {'port_paths': ['/dev/ttyUSB0']}
+serial_config = {'port_paths': ['/dev/ttyACM0', '/dev/ttyACM1']}
 
 
 audio_config = [
+            {'name': 'reactor_online', 'sound': 'audio_files/reactor_online.wav',
+             'loopable': False},
+            {'name': 'reactor_offline', 'sound': 'audio_files/reactor_offline.wav',
+             'loopable': False},
             {'name': 'switch_flipped', 'sound': 'audio_files/mathbutton_yellow.wav',
              'loopable': False},
             {'name': 'button_pressed', 'sound': 'audio_files/mathbutton_green.wav',

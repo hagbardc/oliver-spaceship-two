@@ -40,38 +40,19 @@ audio_queue.put( { 'action': 'end_thread' } )
 audio_queue = Queue.Queue()
 
 
-def audio_controller_worker(config):
+def audio_controller_worker(config, queue_list):
     """
     config is an array of dict objects:
 
     [ {'name': 'piano', 'sound': 'piano2.wav', 'loopable': False } ]
 
     """
-    ac = AudioController(config)
-
-    while True:
-        soundInfo = audio_queue.get(block=True)
-        logging.debug("audioQueue.get pulled [%s]" % str(soundInfo))
-
-        if dict is not type(soundInfo):
-            logging.warn("audioQueue.get pulled an object that was not a dict")
-            continue
-
-        try:
-            if soundInfo['action'] == 'play':
-                ac.playSound(soundInfo['name'], soundInfo['loop'])
-            elif soundInfo['action'] == 'stop':
-                ac.stopSound(soundInfo['name'])
-            elif soundInfo['action'] == 'end_thread':
-                logging.debug("Ending audio worker")
-                return  # special message to end the thread
-        except KeyError:
-            logging.error("KeyError - soundInfo %s improperly structured" %
-                          soundInfo)
+    ac = AudioController(config, queue_list)
+    ac.consumeMessages()
 
 
 class AudioController:
-    def __init__(self, config):
+    def __init__(self, config, message_queue_list):
         pygame.init()
         pygame.mixer.init()
 
@@ -79,11 +60,42 @@ class AudioController:
         for item in config:
             self.__register(item['name'], item['sound'], item['loopable'])
 
+        # This is a list of messages queues from which we should be consuming messagess
+        self._queue_list = message_queue_list
+
     def __register(self, registry_name, file_path, loopable=False):
         self._audio_registry[registry_name] = {
             'sound': pygame.mixer.Sound(file_path),
             'loopable': loopable
             }
+
+    def consumeMessages(self):
+        while True:
+            for q in self._queue_list:
+                if not q.empty():
+                    soundInfo = q.get(block=False, timeout=0.01)
+                    if not soundInfo:
+                        continue
+
+                    logging.debug("audioQueue.get pulled [%s]" % str(soundInfo))
+                    if dict is not type(soundInfo):
+                        logging.warn("audioQueue.get pulled an object that was not a dict")
+                        logging.warn("type is %s" % type(soundInfo))
+                        continue
+
+                    try:
+                        if soundInfo['action'] == 'play':
+                            self.playSound(soundInfo['name'], soundInfo['loop'])
+                        elif soundInfo['action'] == 'stop':
+                            self.stopSound(soundInfo['name'])
+                        elif soundInfo['action'] == 'end_thread':
+                            logging.debug("Received end_thread message.")
+                            return  # special message to end the thread
+                    except KeyError:
+                        logging.error("KeyError - soundInfo %s improperly structured" %
+                                    soundInfo)
+
+
 
     def playSound(self, registry_name, loop=False):
         """ Play a sound previously registered (via the pygame linkage)

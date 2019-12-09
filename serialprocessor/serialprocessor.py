@@ -20,42 +20,22 @@ logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
 
-def serial_processor_worker(serial_name, serial_port, audio_controller_queue,
+def serial_processor_worker(serial_name, audio_controller_queue,
                             logger=logging.getLogger()):
-    """ Worker function to publish data coming in from a serial port to a queue
+    """ Generates a SerialProcessor and sets it to start monitoring the port
     
     Arguments:
         serial_name {str} -- Name associated with the serial port in `serial_port`
-        serial_port {serial.Serial} -- Serial port from which to read data for publishing to the audio queue
         audio_controller_queue {queue.Queue} -- Queue onto which to publish the messages from the serial line
     
     Keyword Arguments:
         logger {logging.Logger} -- Logging object (default: {logging.getLogger()})
     """
+ 
+    serialProcessor = SerialProcessor( config = {'port_path': serial_name}, audio_controller_queue = audio_controller_queue)
+    serialProcessor.startSerialListening()
 
-    while not SerialProcessor.terminateFlag():
-        line = serial_port.readline()
-        if not line:
-            break
 
-        try:
-            logger.debug("Message recived on %s: %s"
-                         % (serial_name, line))
-            event_message = SerialProcessor.processJson(serial_name, line)
-            logger.debug("Post processing on %s: [%s]"
-                         % (serial_name, event_message))
-
-            if audio_controller_queue:
-                logger.debug("Publishing message onto audio_controller_queue")
-                audio_controller_queue.put(event_message)
-
-        except KeyError as ke:
-            logger.error("KeyError - serialInfo %s improperly structured"
-                         % line)
-            logger.error("%s" % ke.message)
-        except TypeError as err:
-            logger.error("Got type error: %s" % err.message)
-            pass
 
 
 class SerialProcessor:
@@ -85,7 +65,7 @@ class SerialProcessor:
         example usage:
 
         q = queue.Queue()
-        serial_config = {'port_paths': ['/dev/ttyUSB0', '/dev/ttyACM0']}
+        serial_config = {'port_path': '/dev/ttyUSB0'}
 
         sp = SerialProcessor(config=serial_config,
                             audio_controller_queue=q,
@@ -104,43 +84,43 @@ class SerialProcessor:
         # Paths to serial ports
         # TODO:  Check for existence of paths, and exit if not found
         # TODO: Auto discover USB and ACM paths
-        if 'port_paths' not in config:
-            self.autoAssignUSBSerialPorts()
-        else:
-            self._port_paths = config['port_paths']
+        self._port_path = config['port_path']
 
-        self._serial_ports = []
-        for p in self._port_paths:
-            self._logger.info('Connecting serial port at %s' % p)
-            port = serial.Serial(p, self._controller_baud)
-            self._serial_ports.append((p, port))
-
-        self._threads = []
+        
+        # self._serial_port <serial.Serial> object>
+        self._logger.info('Connecting serial port at %s' % self._port_path)
+        self._serial_port = serial.Serial(self._port_path, self._controller_baud, timeout=None)
 
     def startSerialListening(self):
-        for p in self._serial_ports:
-            self._logger.info("Creating thread for %s" % (p[0]))
-            t = threading.Thread(target=serial_processor_worker,
-                                 args=[p[0], p[1],
-                                       self._audio_controller_queue,
-                                       self._logger])
-            self._threads.append(t)
-            self._logger.info("Starting thread for %s" % (p[0]))
-            t.start()
+        """This is a blocking call that will just start listening on the port specified by the item in port_path
+        """
+        while True:
+            line = self._serial_port.readline()
+            if not line:
+                continue
 
-    # Does an ls -1 /dev/ and picks up any ttyUSB or ttyACM ports
-    def autoAssignUSBSerialPorts(self):
-        files = os.listdir('/dev/')
-        for name in files:
-            print(name)
+            try:
+                logger.debug("Message recived on %s: %s" % (self._port_path, line))
+                event_message = SerialProcessor.processJson(self._port_path, line)
+                logger.debug("Post processing on %s: [%s]"  % (self._port_path, event_message))
+
+                if self._audio_controller_queue:
+                    logger.debug("Publishing message onto audio_controller_queue")
+                    self._audio_controller_queue.put(event_message)
+
+            except KeyError as ke:
+                logger.error("KeyError - serialInfo %s improperly structured"
+                            % line)
+                logger.error("%s" % ke)
+            except TypeError as err:
+                logger.error("Got type error: %s" % err)
+                pass
+
 
     @staticmethod
     def terminateFlag():
-        return SerialProcessor._terminate
+        pass # TODO: Change this so that we end the process that this class is running in
 
-    @staticmethod
-    def killall():
-        SerialProcessor._terminate = True
 
     @staticmethod
     def processJson(serial_name, msg_json):
@@ -174,6 +154,17 @@ class SerialProcessor:
             SerialProcessor._logger.error("Invalid JSON message on %s: %s"
                                           % (serial_name, msg_json))
         except Exception as err:
-            SerialProcessor._logger.error("Some other error was hit: %s" % err.message)
+            SerialProcessor._logger.error("Some other error was hit: %s" % err)
 
         return None
+
+
+if __name__ == '__main__':
+
+    logging.basicConfig(format='%(filename)s.%(lineno)d:%(levelname)s:%(message)s',
+                        level=logging.DEBUG)
+
+
+    serial_config = {'port_path': '/dev/ttyACM1'}
+    s = SerialProcessor(config=serial_config, audio_controller_queue=None, log_level=logging.DEBUG)
+    s.startSerialListening()

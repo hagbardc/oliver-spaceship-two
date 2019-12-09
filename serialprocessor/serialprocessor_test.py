@@ -5,7 +5,8 @@ logging.info("instantiating serial processor")
 logging.basicConfig(format='%(filename)s.%(lineno)d:%(levelname)s:%(message)s',
                     level=logging.DEBUG)
 
-serial_config = {'port_paths': ['/dev/ttyUSB0', '/dev/ttyACM0']}
+serial_config = {'port_paths': ['/dev/ttyACM0', '/dev/ttyACM1']}
+
 audio_controller_queue = None
 
 logging.debug('serial_config is %s' % serial_config)
