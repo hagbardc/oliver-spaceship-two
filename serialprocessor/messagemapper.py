@@ -44,7 +44,15 @@ class MessageMapper(object):
         
         component = event_message['component']
         self._logger.debug('Calling method for event [%s]' % event_message)
-        return self.__eventMap[component](event_message)
+
+        if component not in self.__eventMap:
+            self._logger.warning('Component %s not registered. Check _configureEventMap' % component)
+            return None
+
+        audio_message = self.__eventMap[component](event_message)
+        if 'name' not in audio_message:
+            self._logger.warning('Sound lookup failed for event [%s]' % event_message)
+        return audio_message
         
 
     def _configureEventMap(self):
@@ -53,12 +61,26 @@ class MessageMapper(object):
 
         self.__eventMap['switch-32'] = self._simpleEvent
 
+        self.__eventMap['switch-07'] = self._loopedEvent
 
 
+        self.__eventMap['switch-31'] = self._switchEvent
         self.__eventMap['switch-42-49'] = self._switchEvent
         self.__eventMap['switch-50-52'] = self._switchEvent
+        self.__eventMap['switch-51-53'] = self._switchEvent
+
         self.__eventMap['key'] = self._simpleEvent
 
+    def _loopedEvent(self, event_message):
+        """Transforms a incoming switch event to the relevant audiocontroller message
+        Assumes that 
+        
+        Arguments:
+            event_message {dict} -- Message dictionary as extracted from json payload of arduino message
+
+        Returns:
+            {dict} -- Dictionary of {'action': <str>, 'name': <str>, 'loop': <bool>} which can be passed to audiocontroller
+        """
 
     def _switchEvent(self, event_message):
         """Transforms a incoming switch event to the relevant audiocontroller message
@@ -73,8 +95,21 @@ class MessageMapper(object):
         audiocontroller_message = {'action': 'play', 'loop': False}
         if event_message['component'] == 'switch-50-52' and event_message['value'] == str(1):
             audiocontroller_message['name'] = 'reactor_online'
-        if event_message['component'] == 'switch-50-52' and event_message['value'] == str(2):
+        elif event_message['component'] == 'switch-50-52' and event_message['value'] == str(2):
             audiocontroller_message['name'] = 'reactor_offline'
+        elif event_message['component'] == 'switch-31' and event_message['value'] == str(1):
+            audiocontroller_message['name'] = 'satellite_established'
+        elif event_message['component'] == 'switch-31' and event_message['value'] == str(0):
+            audiocontroller_message['name'] = 'satellite_shutdown'
+        elif event_message['component'] == 'switch-51-53' and event_message['value'] == str(2):
+            audiocontroller_message['name'] = 'linked_fire'
+        elif event_message['component'] == 'switch-51-53' and event_message['value'] == str(1):
+            audiocontroller_message['name'] = 'single_fire'
+        elif event_message['component'] == 'switch-51-53' and event_message['value'] == str(0):
+            audiocontroller_message['name'] = 'group_fire'
+
+
+
 
         self._logger.debug('Audiocontroller Message is [%s]' % audiocontroller_message)
         return audiocontroller_message
@@ -93,10 +128,12 @@ class MessageMapper(object):
         """
 
         audiocontroller_message = {'action': 'play', 'loop': False}
-        if event_message['component'] == 'key' and event_message['value'] == 1:
-            audiocontroller_message['name'] = 'system_activated'
+        if event_message['component'] == 'key' and event_message['value'] == str(0):
+            audiocontroller_message['name'] = 'initialization_sequence'
+        if event_message['component'] == 'key' and event_message['value'] == str(1):
+            audiocontroller_message['name'] = 'shutdown_sequence'
         if event_message['component'] == 'switch-32' and event_message['value'] == str(0):
-            audiocontroller_message['name'] = 'button_pressed'
+            audiocontroller_message['name'] = 'gauss_rifle'
         
 
         self._logger.debug('Audiocontroller Message is [%s]' % audiocontroller_message)
