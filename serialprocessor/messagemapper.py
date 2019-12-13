@@ -2,7 +2,7 @@
 """
 
 import logging
-from panelstate import PanelState
+from panelstate import PanelState, PanelActiveStatus
 
 
 class MessageMapper(object):
@@ -46,6 +46,7 @@ class MessageMapper(object):
             return None
 
         self.panelState.processEventMessage(event_message)
+        self._logger.info(self.panelState)
 
         if not self.panelState.controllersAreReady():
             self._logger.debug('Controllers are not ready!')
@@ -74,7 +75,17 @@ class MessageMapper(object):
         """Populates __eventMap with mappings of component names to methods that should be called when that component sends a message
         """
 
+        # We will only get one of these when the system is ready
+        self.__eventMap['controller01'] = self._controllerEvent
+        self.__eventMap['controller02'] = self._controllerEvent
+
+        # The key event is a special one, since we want to have differing behavior 
+        # based on the panelActiveState
+        self.__eventMap['key'] = self._keyEvent
+
+
         self.__eventMap['switch-32'] = self._simpleEvent
+
 
         self.__eventMap['switch-07'] = self._loopedEvent
 
@@ -90,7 +101,54 @@ class MessageMapper(object):
         self.__eventMap['switch-50-52'] = self._switchEvent
         self.__eventMap['switch-51-53'] = self._switchEvent
 
-        self.__eventMap['key'] = self._simpleEvent
+
+    def _controllerEvent(self, event_message):
+        """Transforms a incoming microcontroller event to the relevant audiocontroller message
+        
+        Arguments:
+            event_message {dict} -- Message dictionary as extracted from json payload of arduino message
+
+        Returns:
+            {dict} -- Dictionary of {'action': <str>, 'name': <str>, 'loop': <bool>} which can be passed to audiocontroller
+        """
+        audiocontroller_message = {'action': 'play', 'loop': False}
+        if event_message['component'] == 'controller01' or event_message['component'] == 'controller02':
+            audiocontroller_message['name'] = 'systems_nominal'
+
+        return audiocontroller_message
+
+
+    def _keyEvent(self, event_message):
+        """Transforms a incoming key event to the relevant audiocontroller message
+        
+        Arguments:
+            event_message {dict} -- Message dictionary as extracted from json payload of arduino message
+
+        Returns:
+            {dict} -- Dictionary of {'action': <str>, 'name': <str>, 'loop': <bool>} which can be passed to audiocontroller
+        """
+        audiocontroller_message = {'action': 'play', 'loop': False}
+        if event_message['component'] != 'key':
+            self._logger.error("Component [%s] is not expected 'key'" % event_message['component'])
+            return None # This should never happen
+            
+        if self.panelState.panelActiveStatus ==  PanelActiveStatus.INVALID:
+            if event_message['value'] == str(0):
+                audiocontroller_message['name'] = 'power_restored'
+            if event_message['value'] == str(1):
+                audiocontroller_message['name'] = 'shutdown_sequence' # this should not be able to happen
+        
+        # This part looks backwards because we update the panel state before we play the sound
+        elif self.panelState.panelActiveStatus ==  PanelActiveStatus.OFF:
+            if event_message['value'] == str(1):
+                audiocontroller_message['name'] = 'shutdown_sequence'
+        elif self.panelState.panelActiveStatus ==  PanelActiveStatus.ON: 
+            if event_message['value'] == str(0):
+                audiocontroller_message['name'] = 'power_restored'
+
+        self._logger.debug("Returning key audio message: %s" % audiocontroller_message)
+        return audiocontroller_message
+
 
     def _loopedEvent(self, event_message):
         """Transforms a incoming switch event to the relevant audiocontroller message
@@ -114,6 +172,10 @@ class MessageMapper(object):
         """
 
         audiocontroller_message = {'action': 'play', 'loop': False}
+        if self.panelState.panelActiveStatus != PanelActiveStatus.ON:
+            audiocontroller_message['name'] = 'systems_offline'
+            return audiocontroller_message
+
         if event_message['component'] == 'switch-50-52' and event_message['value'] == str(1):
             audiocontroller_message['name'] = 'reactor_online'
         elif event_message['component'] == 'switch-50-52' and event_message['value'] == str(2):
@@ -163,12 +225,12 @@ class MessageMapper(object):
         Returns:
             {dict} -- Dictionary of {'action': <str>, 'name': <str>, 'loop': <bool>} which can be passed to audiocontroller
         """
+        audiocontroller_message = {'action': 'play', 'loop': False}
+        if self.panelState.panelActiveStatus != PanelActiveStatus.ON:
+            audiocontroller_message['name'] = 'systems_offline'
+            return audiocontroller_message
 
         audiocontroller_message = {'action': 'play', 'loop': False}
-        if event_message['component'] == 'key' and event_message['value'] == str(0):
-            audiocontroller_message['name'] = 'initialization_sequence'
-        if event_message['component'] == 'key' and event_message['value'] == str(1):
-            audiocontroller_message['name'] = 'shutdown_sequence'
         if event_message['component'] == 'switch-32' and event_message['value'] == str(0):
             audiocontroller_message['name'] = 'gauss_rifle'
         

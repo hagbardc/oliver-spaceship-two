@@ -9,6 +9,9 @@ logging.basicConfig(format='%(filename)s.%(lineno)d:%(levelname)s:%(message)s',
                     level=logging.DEBUG)
 
 audio_config = [
+            {'name': 'systems_nominal',         'sound': 'audio_files/systems_nominal.wav', 'loopable': False},
+            {'name': 'power_restored',          'sound': 'audio_files/power_restored.wav', 'loopable': False},
+            {'name': 'systems_offline',         'sound': 'audio_files/systems_offline.wav', 'loopable': False},
             {'name': 'single_fire',             'sound': 'audio_files/single_fire_engaged.wav', 'loopable': False},
             {'name': 'linked_fire',             'sound': 'audio_files/linked_fire_engaged.wav', 'loopable': False},
             {'name': 'group_fire',              'sound': 'audio_files/group_fire_engaged.wav', 'loopable': False},
@@ -43,7 +46,7 @@ if __name__ == '__main__':
     q2 = Queue()
     q3 = Queue()
 
-    message_mapper = MessageMapper(log_level=logging.INFO)
+    message_mapper = MessageMapper(log_level=logging.DEBUG)
     
     audio_process = Process( target=audio_controller_worker, args=(audio_config, [q3],))
     audio_process.start()

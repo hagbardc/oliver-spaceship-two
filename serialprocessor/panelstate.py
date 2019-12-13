@@ -24,6 +24,9 @@ class PanelState(object):
         self._controller01Ready = False
         self._controller02Ready = False
 
+    def __str__(self):
+        return "Controllers: [%s/%s] PanelActive: %s" % (self._controller01Ready, self._controller02Ready, self.panelActiveStatus)
+
     def controllersAreReady(self):
         return self._controller01Ready and self._controller02Ready
 
@@ -43,6 +46,8 @@ class PanelState(object):
 
 
     def _processKeyEventMessage(self, event_message):
+        
+        # We don't want to process any key event messages unless the controllers are set up
         try:
             if event_message['action'] == 'stateread' and event_message['value'] == str(0):
                 return
