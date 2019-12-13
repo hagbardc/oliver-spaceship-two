@@ -69,6 +69,8 @@ class MessageMapper(object):
         self.__eventMap['switch-31'] = self._switchEvent
         self.__eventMap['switch-33'] = self._switchEvent
         self.__eventMap['switch-34'] = self._switchEvent
+        self.__eventMap['switch-35'] = self._switchEvent
+        self.__eventMap['switch-36'] = self._switchEvent
         self.__eventMap['switch-42-49'] = self._switchEvent
         self.__eventMap['switch-50-52'] = self._switchEvent
         self.__eventMap['switch-51-53'] = self._switchEvent
@@ -123,6 +125,10 @@ class MessageMapper(object):
             audiocontroller_message['name'] = 'missile_launch_01'
         elif event_message['component'] == 'switch-34' and event_message['value'] == str(0):
             audiocontroller_message['name'] = 'attacking_machinegun'
+        elif event_message['component'] == 'switch-35' and event_message['value'] == str(0):
+            audiocontroller_message['name'] = 'flamethrower'
+        elif event_message['component'] == 'switch-36' and event_message['value'] == str(0):
+            audiocontroller_message['name'] = 'ac10_gun'
 
 
 
