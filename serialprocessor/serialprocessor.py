@@ -14,7 +14,6 @@ import Queue
 import serial
 import threading
 
-from messagemapper import MessageMapper
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -45,8 +44,6 @@ class SerialProcessor:
     _terminate = False
     _logger = logging.getLogger()
     _logger.setLevel(logging.WARNING)
-
-    _message_mapper = MessageMapper(logger=_logger)
 
     # Config is dict:  { 'port_paths': []}
     def __init__(self, config, audio_controller_queue,
@@ -146,10 +143,10 @@ class SerialProcessor:
             event_message = json.loads(msg_json.decode('utf-8'))
             SerialProcessor._logger.info("Message: %s" % event_message)
 
-            audio_command = SerialProcessor._message_mapper.getAudiocontrollerMessageForEvent(event_message)
+            #audio_command = SerialProcessor._message_mapper.getAudiocontrollerMessageForEvent(event_message)
 
-            SerialProcessor._logger.debug("audio_command [%s]" % audio_command)
-            return audio_command
+            #SerialProcessor._logger.debug("audio_command [%s]" % audio_command)
+            return event_message
         except ValueError:
             SerialProcessor._logger.error("Invalid JSON message on %s: %s"
                                           % (serial_name, msg_json))

@@ -1,7 +1,7 @@
 from multiprocessing import Process, Queue
 from serialprocessor.serialprocessor import serial_processor_worker
-from audiocontroller.audiocontroller import audio_controller_worker
-
+from audiocontroller.audiocontroller import audio_controller_worker, AudioController
+from serialprocessor.messagemapper import MessageMapper
 import time
 import logging
 
@@ -41,8 +41,11 @@ if __name__ == '__main__':
 
     q1 = Queue()
     q2 = Queue()
+    q3 = Queue()
+
+    message_mapper = MessageMapper(log_level=logging.INFO)
     
-    audio_process = Process( target=audio_controller_worker, args=(audio_config, [q1, q2],))
+    audio_process = Process( target=audio_controller_worker, args=(audio_config, [q3],))
     audio_process.start()
 
     serial_process_01 = Process( target = serial_processor_worker, args=('/dev/ttyACM1', q1,))
@@ -53,8 +56,27 @@ if __name__ == '__main__':
 
 
     while True:
-        continue
+        for q in [q1, q2]:
+            if not q.empty():
+                event_message = q.get(block=False, timeout=0.01)
+                if not event_message:
+                    continue
+                
+                logging.debug("event_message is: %s" % event_message)
+                audio_command = message_mapper.getAudiocontrollerMessageForEvent(event_message)
+                logging.debug("audio_command is: %s" % audio_command)
+
+                # If the message mapper didn't return a message for the audio controller, continue loop
+                if not audio_command:
+                    continue
+
+                if not AudioController.isValidAudioCommand(audio_command):
+                    logging.error("Audio command [%s] invalid" % audio_command)
+                    continue
+
+                q3.put(audio_command)
     
+
     audio_process.join()
     serial_process_01.join()
     serial_process_02.join()

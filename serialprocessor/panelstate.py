@@ -20,6 +20,27 @@ class PanelState(object):
 
         self.panelActiveStatus = PanelActiveStatus.INVALID
 
+        # These will be False until the two microcontroller components report a ready state
+        self._controller01Ready = False
+        self._controller02Ready = False
+
+    def controllersAreReady(self):
+        return self._controller01Ready and self._controller02Ready
+
+    # {u'action': u'setup_complete', u'component': u'controller01', u'value': u'n/a', u'element': u'n/a'}
+    def _processControllerEventMessage(self, event_message):
+        """For handling panel state
+        
+        Arguments:
+            event_message {dict} -- Message dictionary as extracted from json payload of arduino message
+        """
+        if event_message['component'] == 'controller01' and event_message['action'] == 'setup_complete':
+            self._logger.debug("Setting controller01Ready to True")
+            self._controller01Ready = True
+        elif event_message['component'] == 'controller02' and event_message['action'] == 'setup_complete':
+            self._logger.debug("Setting controller02Ready to True")
+            self._controller02Ready = True
+
 
     def _processKeyEventMessage(self, event_message):
         try:
@@ -42,8 +63,12 @@ class PanelState(object):
             event_message {dict} -- Message dictionary as extracted from json payload of arduino message
         """
         try:
-            if event_message['component'] == 'key':
+            if event_message['component'] == 'controller01' or event_message['component'] == 'controller02':
+                self._processControllerEventMessage(event_message)
+            elif event_message['component'] == 'key':
                 self._processKeyEventMessage(event_message)
+
+
         
         except KeyError:
             self._logger.error("Received event message without 'component' key: %s" % event_message)

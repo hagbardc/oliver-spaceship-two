@@ -3,39 +3,6 @@ import pygame
 import Queue
 
 
-"""
-This AudioController package is the interface to the sound system
-
-Declares a Queue object, audio_queue, into which we publish requests to
-start and stop sounds (controlled via the config parameter to the
-AudioController class
-
-Also declares the audio_controller_worker method, intended to be the entry
-point to a Threading.thread
-
-Usage:
-import threading
-from audiocontroller import audio_queue, audio_controller_worker
-from audiocontroller import AudioController as ac
-
-config = [ {'name': 'piano1', 'sound': 'piano1.wav', 'loopable': False },
-           {'name': 'piano2', 'sound': 'piano2.wav', 'loopable': False }
-    ]
-
-t = threading.Thread(target=audio_controller_worker, args=[config])
-t.start()
-
-
-time.sleep(1)
-audio_queue.put(cmd)
-time.sleep(5)  # Leaves time to play the sound
-
-
-# Control command to stop the thread
-audio_queue.put( { 'action': 'end_thread' } )
-"""
-
-
 # This is the queue into which we publish sound request events
 audio_queue = Queue.Queue()
 
@@ -52,6 +19,32 @@ def audio_controller_worker(config, queue_list):
 
 
 class AudioController:
+
+
+    @staticmethod
+    def isValidAudioCommand(audio_message):
+        """Returns true if the passed in audio message dict is a properly structured audio message
+        Does not care if the given message is registered properly, just checks the dictionary 
+        for the proper keys
+        
+        Arguments:
+            audio_message {keys} -- Audio message suitable for playing
+        """
+        if not audio_message:
+            logging.error('None type passed to isValidAudioCommand')
+            return False
+
+        if type(audio_message) is not dict:
+            logging.error('type of passed in audio_message is %s' % type(audio_message))
+            return False
+
+        if  'name' not in audio_message or \
+            'action' not in audio_message or \
+            'loop' not in audio_message:
+            return False
+
+        return True
+
     def __init__(self, config, message_queue_list):
         pygame.init()
         pygame.mixer.init()
