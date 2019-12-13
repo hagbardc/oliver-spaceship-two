@@ -2,6 +2,7 @@
 """
 
 import logging
+from panelstate import PanelState
 
 
 class MessageMapper(object):
@@ -28,6 +29,8 @@ class MessageMapper(object):
         self.__eventMap = {}
         self._configureEventMap()
 
+        self.panelState = PanelState(logger, log_level)
+
 
     def getAudiocontrollerMessageForEvent(self, event_message):
         """Given a microcontroller event, return the relevant message for the audiocontroller
@@ -41,6 +44,15 @@ class MessageMapper(object):
         if 'component' not in event_message:
             self._logger.error('Event message passed without "component": [%s]' % event_message)
             return None
+
+        self.panelState.processEventMessage(event_message)
+
+        if not self.panelState.controllersAreReady():
+            self._logger.debug('Controllers are not ready!')
+            return None
+
+        if event_message['action'] == 'stateread':
+            return None
         
         component = event_message['component']
         self._logger.debug('Calling method for event [%s]' % event_message)
@@ -50,6 +62,9 @@ class MessageMapper(object):
             return None
 
         audio_message = self.__eventMap[component](event_message)
+        if not audio_message:
+            return None
+            
         if 'name' not in audio_message:
             self._logger.warning('Sound lookup failed for event [%s]' % event_message)
         return audio_message
