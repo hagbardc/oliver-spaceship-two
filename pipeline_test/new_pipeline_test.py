@@ -28,6 +28,7 @@ audio_config = [
             {'name': 'ams_engaged',             'sound': 'audio_files/ams_engaged.wav', 'loopable': False},
             {'name': 'ams_offline',             'sound': 'audio_files/ams_offline.wav', 'loopable': False},
             {'name': 'initialization_sequence', 'sound': 'audio_files/initialization_sequence.wav', 'loopable': False},
+            {'name': 'heat_warning',            'sound':   'audio_files/heat_warning.wav', 'loopable': True},
             {'name': 'shutdown_sequence',       'sound': 'audio_files/shutdown_sequence.wav', 'loopable': False},
             {'name': 'satellite_established',   'sound': 'audio_files/satellite_link_established.wav', 'loopable': False},
             {'name': 'satellite_shutdown',      'sound': 'audio_files/satellite_link_shutdown.wav', 'loopable': False},

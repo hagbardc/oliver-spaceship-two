@@ -87,7 +87,7 @@ class MessageMapper(object):
         self.__eventMap['switch-32'] = self._simpleEvent
 
 
-        self.__eventMap['switch-07'] = self._loopedEvent
+        self.__eventMap['switch-07'] = self._blueButtonEvent
 
 
         self.__eventMap['switch-23'] = self._switchEvent
@@ -117,6 +117,27 @@ class MessageMapper(object):
 
         return audiocontroller_message
 
+    def _blueButtonEvent(self, event_message):
+        """Transforms a incoming microcontroller event to the relevant audiocontroller message
+        
+        Arguments:
+            event_message {dict} -- Message dictionary as extracted from json payload of arduino message
+
+        Returns:
+            {dict} -- Dictionary of {'action': <str>, 'name': <str>, 'loop': <bool>} which can be passed to audiocontroller
+        """
+        audiocontroller_message = {'name': 'heat_warning', 'loop': True}
+
+        if event_message['action'] != 'switch':
+            return None
+
+        if event_message['value'] == str(0):
+            audiocontroller_message['action'] = 'play'
+        elif event_message['value'] == str(1):
+            audiocontroller_message['action'] = 'stop'
+
+        return audiocontroller_message
+        
 
     def _keyEvent(self, event_message):
         """Transforms a incoming key event to the relevant audiocontroller message

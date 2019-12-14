@@ -1,22 +1,25 @@
-import threading
-from audiocontroller import audio_queue, audio_controller_worker
+from multiprocessing import Process, Queue
+
+from audiocontroller import audio_controller_worker
 from audiocontroller import AudioController as ac
 import time
 
 
-config = [{'name': 'piano', 'sound': 'piano2.wav', 'loopable': False}]
-cmd = {'name': 'piano', 'action': 'play', 'loop': False}
+config = [{'name': 'button', 'sound': 'button.wav', 'loopable': True}]
+cmdStart = {'name': 'button', 'action': 'play', 'loop': True}
+cmdStop = {'name': 'button', 'action': 'stop', 'loop': True}
 
-t = threading.Thread(target=audio_controller_worker, args=[config])
-t.start()
+q = Queue()
+audio_process = Process( target=audio_controller_worker, args=(config, [q],))
+audio_process.start()
 
 
 time.sleep(1)
-audio_queue.put(cmd)
-time.sleep(1)
-audio_queue.put(cmd)
-time.sleep(5)
+q.put(cmdStart)
+time.sleep(2)
+q.put(cmdStop)
+time.sleep(2)
 
 
 end_thread = {'action': 'end_thread'}
-audio_queue.put(end_thread)
+q.put(end_thread)
