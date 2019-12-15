@@ -2,8 +2,11 @@ from multiprocessing import Process, Queue
 from serialprocessor.serialprocessor import serial_processor_worker
 from audiocontroller.audiocontroller import audio_controller_worker, AudioController
 from serialprocessor.messagemapper import MessageMapper
-import time
+
+import sys
 import logging
+import argparse
+
 
 logging.basicConfig(format='%(filename)s.%(lineno)d:%(levelname)s:%(message)s',
                     level=logging.DEBUG)
@@ -12,6 +15,15 @@ audio_config = [
             {'name': 'systems_nominal',         'sound': 'audio_files/systems_nominal.wav', 'loopable': False},
             {'name': 'power_restored',          'sound': 'audio_files/power_restored.wav', 'loopable': False},
             {'name': 'systems_offline',         'sound': 'audio_files/systems_offline.wav', 'loopable': False},
+            {'name': 'blip_low',                'sound': 'audio_files/blip_low.wav', 'loopable': False},
+            {'name': 'blip_medium',             'sound': 'audio_files/blip_medium.wav', 'loopable': False},
+            {'name': 'blip_high',               'sound': 'audio_files/blip_high.wav', 'loopable': False},
+            {'name': 'artemis_online',          'sound': 'audio_files/artemis_online.wav', 'loopable': False},
+            {'name': 'artemis_offline',         'sound': 'audio_files/artemis_offline.wav', 'loopable': False},
+            {'name': 'sensors_online',          'sound': 'audio_files/sensors_online.wav', 'loopable': False},
+            {'name': 'sensors_offline',         'sound': 'audio_files/sensors_offline.wav', 'loopable': False},
+            {'name': 'targeting_computer_online','sound': 'audio_files/targeting_computer_online.wav', 'loopable': False},
+            {'name': 'targeting_computer_offline','sound': 'audio_files/targeting_computer_offline.wav', 'loopable': False},
             {'name': 'single_fire',             'sound': 'audio_files/single_fire_engaged.wav', 'loopable': False},
             {'name': 'linked_fire',             'sound': 'audio_files/linked_fire_engaged.wav', 'loopable': False},
             {'name': 'group_fire',              'sound': 'audio_files/group_fire_engaged.wav', 'loopable': False},
@@ -28,7 +40,7 @@ audio_config = [
             {'name': 'ams_engaged',             'sound': 'audio_files/ams_engaged.wav', 'loopable': False},
             {'name': 'ams_offline',             'sound': 'audio_files/ams_offline.wav', 'loopable': False},
             {'name': 'initialization_sequence', 'sound': 'audio_files/initialization_sequence.wav', 'loopable': False},
-            {'name': 'heat_warning',            'sound':   'audio_files/heat_warning.wav', 'loopable': True},
+            {'name': 'heat_warning',            'sound': 'audio_files/heat_warning.wav', 'loopable': True},
             {'name': 'shutdown_sequence',       'sound': 'audio_files/shutdown_sequence.wav', 'loopable': False},
             {'name': 'satellite_established',   'sound': 'audio_files/satellite_link_established.wav', 'loopable': False},
             {'name': 'satellite_shutdown',      'sound': 'audio_files/satellite_link_shutdown.wav', 'loopable': False},
@@ -39,15 +51,28 @@ audio_config = [
             ]
 
 
+def parse_arguments(argv):
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-l", "--log", dest="log_level", 
+                        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], 
+                        default='INFO', help="Set the logging level")
+
+    return parser.parse_args(argv)
+
+
 
 if __name__ == '__main__':
     print("Starting multiprocess app")
+
+    args = parse_arguments(sys.argv[1:])
+    log_level = args.log_level
 
     q1 = Queue()
     q2 = Queue()
     q3 = Queue()
 
-    message_mapper = MessageMapper(log_level=logging.DEBUG)
+    message_mapper = MessageMapper(log_level=log_level)
     
     audio_process = Process( target=audio_controller_worker, args=(audio_config, [q3],))
     audio_process.start()

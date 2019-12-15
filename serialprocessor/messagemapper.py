@@ -46,7 +46,7 @@ class MessageMapper(object):
             return None
 
         self.panelState.processEventMessage(event_message)
-        self._logger.info(self.panelState)
+        self._logger.debug(self.panelState)
 
         if not self.panelState.controllersAreReady():
             self._logger.debug('Controllers are not ready!')
@@ -89,6 +89,9 @@ class MessageMapper(object):
 
         self.__eventMap['switch-07'] = self._blueButtonEvent
 
+        self.__eventMap['redToggle'] = self._toggleEvent
+        self.__eventMap['greenToggle'] = self._toggleEvent
+        self.__eventMap['blueToggle'] = self._toggleEvent
 
         self.__eventMap['switch-23'] = self._switchEvent
         self.__eventMap['switch-25'] = self._switchEvent
@@ -116,6 +119,45 @@ class MessageMapper(object):
             audiocontroller_message['name'] = 'systems_nominal'
 
         return audiocontroller_message
+
+    def _toggleEvent(self, event_message):
+        """Transforms a incoming microcontroller event to the relevant audiocontroller message
+        
+        Arguments:
+            event_message {dict} -- Message dictionary as extracted from json payload of arduino message
+
+        Returns:
+            {dict} -- Dictionary of {'action': <str>, 'name': <str>, 'loop': <bool>} which can be passed to audiocontroller
+        """
+        audiocontroller_message = {'action': 'play', 'loop': False}
+
+        if event_message['action'] != 'statechange':
+            return None
+
+        if event_message['value'] == 'PROCESSING:1':
+            audiocontroller_message['name'] = 'blip_low'
+        if event_message['value'] == 'PROCESSING:2':
+            audiocontroller_message['name'] = 'blip_medium'
+
+
+        if event_message['component'] == 'redToggle':
+            if event_message['value'] == 'WAITING:0':
+                audiocontroller_message['name'] = 'artemis_offline'
+            if event_message['value'] == 'ACTIVE:3':
+                audiocontroller_message['name'] = 'artemis_online'
+        elif event_message['component'] == 'greenToggle':
+            if event_message['value'] == 'WAITING:0':
+                audiocontroller_message['name'] = 'sensors_offline'
+            if event_message['value'] == 'ACTIVE:3':
+                audiocontroller_message['name'] = 'sensors_online'
+        elif event_message['component'] == 'blueToggle':
+            if event_message['value'] == 'WAITING:0':
+                audiocontroller_message['name'] = 'targeting_computer_offline'
+            if event_message['value'] == 'ACTIVE:3':
+                audiocontroller_message['name'] = 'targeting_computer_online'
+        return audiocontroller_message
+
+
 
     def _blueButtonEvent(self, event_message):
         """Transforms a incoming microcontroller event to the relevant audiocontroller message
