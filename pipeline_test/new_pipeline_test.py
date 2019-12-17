@@ -29,6 +29,8 @@ audio_config = [
             {'name': 'group_fire',              'sound': 'audio_files/group_fire_engaged.wav', 'loopable': False},
             {'name': 'reactor_online',          'sound': 'audio_files/reactor_online.wav', 'loopable': False},
             {'name': 'reactor_offline',         'sound': 'audio_files/reactor_offline.wav', 'loopable': False},
+            {'name': 'power_converter_online',          'sound': 'audio_files/power_converter_online.wav', 'loopable': False},
+            {'name': 'power_converter_offline',         'sound': 'audio_files/power_converter_offline.wav', 'loopable': False},
             {'name': 'switch_flipped',          'sound': 'audio_files/mathbutton_yellow.wav', 'loopable': False}, 
             {'name': 'button_pressed',          'sound': 'audio_files/mathbutton_green.wav', 'loopable': False},
             {'name': 'warning',                 'sound': 'audio_files/warning_tone.wav', 'loopable': True},

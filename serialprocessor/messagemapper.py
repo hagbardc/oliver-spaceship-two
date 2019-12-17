@@ -95,6 +95,7 @@ class MessageMapper(object):
 
         self.__eventMap['switch-23'] = self._switchEvent
         self.__eventMap['switch-25'] = self._switchEvent
+        self.__eventMap['switch-29'] = self._switchEvent
         self.__eventMap['switch-31'] = self._switchEvent
         self.__eventMap['switch-33'] = self._switchEvent
         self.__eventMap['switch-34'] = self._switchEvent
@@ -241,7 +242,7 @@ class MessageMapper(object):
 
         if event_message['component'] == 'switch-50-52' and event_message['value'] == str(1):
             audiocontroller_message['name'] = 'reactor_online'
-        elif event_message['component'] == 'switch-50-52' and event_message['value'] == str(2):
+        elif event_message['component'] == 'switch-50-52' and event_message['value'] == str(0):
             audiocontroller_message['name'] = 'reactor_offline'
         elif event_message['component'] == 'switch-31' and event_message['value'] == str(1):
             audiocontroller_message['name'] = 'satellite_established'
@@ -261,6 +262,10 @@ class MessageMapper(object):
             audiocontroller_message['name'] = 'ams_engaged'
         elif event_message['component'] == 'switch-25' and event_message['value'] == str(0):
             audiocontroller_message['name'] = 'ams_offline'
+        elif event_message['component'] == 'switch-29' and event_message['value'] == str(1):
+            audiocontroller_message['name'] = 'power_converter_online'
+        elif event_message['component'] == 'switch-29' and event_message['value'] == str(0):
+            audiocontroller_message['name'] = 'power_converter_offline'
         elif event_message['component'] == 'switch-33' and event_message['value'] == str(0):
             audiocontroller_message['name'] = 'missile_launch_01'
         elif event_message['component'] == 'switch-34' and event_message['value'] == str(0):
