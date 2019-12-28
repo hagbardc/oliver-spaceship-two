@@ -84,14 +84,13 @@ class MessageMapper(object):
         self.__eventMap['key'] = self._keyEvent
 
 
-        self.__eventMap['switch-32'] = self._simpleEvent
 
 
         self.__eventMap['switch-07'] = self._blueButtonEvent
 
-        self.__eventMap['redToggle'] = self._toggleEvent
-        self.__eventMap['greenToggle'] = self._toggleEvent
-        self.__eventMap['blueToggle'] = self._toggleEvent
+        self.__eventMap['redToggle'] = self._secureToggleEvent
+        self.__eventMap['greenToggle'] = self._secureToggleEvent
+        self.__eventMap['blueToggle'] = self._secureToggleEvent
 
         self.__eventMap['switch-22'] = self._switchEvent
         self.__eventMap['switch-23'] = self._switchEvent
@@ -103,15 +102,17 @@ class MessageMapper(object):
         self.__eventMap['switch-29'] = self._switchEvent
         self.__eventMap['switch-30'] = self._switchEvent
         self.__eventMap['switch-31'] = self._switchEvent
-        self.__eventMap['switch-33'] = self._switchEvent
-        self.__eventMap['switch-34'] = self._switchEvent
-        self.__eventMap['switch-35'] = self._switchEvent
-        self.__eventMap['switch-36'] = self._switchEvent
-        self.__eventMap['switch-37'] = self._switchEvent
-        self.__eventMap['switch-38'] = self._switchEvent
-        self.__eventMap['switch-39'] = self._switchEvent
-        self.__eventMap['switch-40'] = self._switchEvent
-        self.__eventMap['switch-41'] = self._switchEvent
+
+        self.__eventMap['switch-32'] = self._buttonEvent
+        self.__eventMap['switch-33'] = self._buttonEvent
+        self.__eventMap['switch-34'] = self._buttonEvent        
+        self.__eventMap['switch-35'] = self._buttonEvent
+        self.__eventMap['switch-36'] = self._buttonEvent
+        self.__eventMap['switch-37'] = self._buttonEvent
+        self.__eventMap['switch-38'] = self._buttonEvent
+        self.__eventMap['switch-39'] = self._buttonEvent
+        self.__eventMap['switch-40'] = self._buttonEvent
+        self.__eventMap['switch-41'] = self._buttonEvent
 
         self.__eventMap['switch-42-43'] = self._switchEvent
         self.__eventMap['switch-50-52'] = self._switchEvent
@@ -133,7 +134,7 @@ class MessageMapper(object):
 
         return audiocontroller_message
 
-    def _toggleEvent(self, event_message):
+    def _secureToggleEvent(self, event_message):
         """Transforms a incoming microcontroller event to the relevant audiocontroller message
         
         Arguments:
@@ -170,10 +171,8 @@ class MessageMapper(object):
                 audiocontroller_message['name'] = 'targeting_computer_online'
         return audiocontroller_message
 
-
-
     def _blueButtonEvent(self, event_message):
-        """Transforms a incoming microcontroller event to the relevant audiocontroller message
+        """Transforms a event for the big blue LED button to an audiocontroller message
         
         Arguments:
             event_message {dict} -- Message dictionary as extracted from json payload of arduino message
@@ -197,7 +196,6 @@ class MessageMapper(object):
 
         return audiocontroller_message
         
-
     def _keyEvent(self, event_message):
         """Transforms a incoming key event to the relevant audiocontroller message
         
@@ -230,16 +228,57 @@ class MessageMapper(object):
         return audiocontroller_message
 
 
-    def _loopedEvent(self, event_message):
-        """Transforms a incoming switch event to the relevant audiocontroller message
-        Assumes that 
+    def _buttonEvent(self, event_message):
+        """Handles incoming button presses, and transforms to audio controller event
         
+        This is specifically for handling button presses where pressing down should do 
+        something, but releasing should be ignored
+
         Arguments:
             event_message {dict} -- Message dictionary as extracted from json payload of arduino message
 
         Returns:
             {dict} -- Dictionary of {'action': <str>, 'name': <str>, 'loop': <bool>} which can be passed to audiocontroller
         """
+
+        # If the value is 1, this is a 'button-up' event:  Should be ignored
+        if event_message['value'] == str(1):
+            return None
+
+        audiocontroller_message = {'action': 'play', 'loop': False}
+
+        # "Unable to comply" if the panel is not on
+        if self.panelState.panelActiveStatus != PanelActiveStatus.ON:
+            audiocontroller_message['name'] = 'systems_offline'
+            self._logger.debug('Audiocontroller Message is [%s]' % audiocontroller_message)
+            return audiocontroller_message
+
+
+        if event_message['component'] == 'switch-32':
+            audiocontroller_message['name'] = 'gauss_rifle'
+        elif event_message['component'] == 'switch-33':
+            audiocontroller_message['name'] = 'missile_launch_01'
+        elif event_message['component'] == 'switch-34':
+            audiocontroller_message['name'] = 'attacking_machinegun'
+        elif event_message['component'] == 'switch-35':
+            audiocontroller_message['name'] = 'flamethrower'
+        elif event_message['component'] == 'switch-36':
+            audiocontroller_message['name'] = 'ac10_gun'
+        elif event_message['component'] == 'switch-37':
+            audiocontroller_message['name'] = 'srm4_launch'
+        elif event_message['component'] == 'switch-38':
+            audiocontroller_message['name'] = 'laser_large'
+        elif event_message['component'] == 'switch-39':
+            audiocontroller_message['name'] = 'lbx_10'
+        elif event_message['component'] == 'switch-40':
+            audiocontroller_message['name'] = 'xpulse_large'
+        elif event_message['component'] == 'switch-41':
+            audiocontroller_message['name'] = 'laser_small'
+
+        self._logger.debug('Audiocontroller Message is [%s]' % audiocontroller_message)
+        return audiocontroller_message
+
+
 
     def _switchEvent(self, event_message):
         """Transforms a incoming switch event to the relevant audiocontroller message
@@ -313,24 +352,6 @@ class MessageMapper(object):
             audiocontroller_message['name'] = 'power_converter_online'
         elif event_message['component'] == 'switch-29' and event_message['value'] == str(0):
             audiocontroller_message['name'] = 'power_converter_offline'
-        elif event_message['component'] == 'switch-33' and event_message['value'] == str(0):
-            audiocontroller_message['name'] = 'missile_launch_01'
-        elif event_message['component'] == 'switch-34' and event_message['value'] == str(0):
-            audiocontroller_message['name'] = 'attacking_machinegun'
-        elif event_message['component'] == 'switch-35' and event_message['value'] == str(0):
-            audiocontroller_message['name'] = 'flamethrower'
-        elif event_message['component'] == 'switch-36' and event_message['value'] == str(0):
-            audiocontroller_message['name'] = 'ac10_gun'
-        elif event_message['component'] == 'switch-37' and event_message['value'] == str(0):
-            audiocontroller_message['name'] = 'srm4_launch'
-        elif event_message['component'] == 'switch-38' and event_message['value'] == str(0):
-            audiocontroller_message['name'] = 'laser_large'
-        elif event_message['component'] == 'switch-39' and event_message['value'] == str(0):
-            audiocontroller_message['name'] = 'lbx_10'
-        elif event_message['component'] == 'switch-40' and event_message['value'] == str(0):
-            audiocontroller_message['name'] = 'xpulse_large'
-        elif event_message['component'] == 'switch-41' and event_message['value'] == str(0):
-            audiocontroller_message['name'] = 'laser_small'
 
 
 
@@ -340,28 +361,6 @@ class MessageMapper(object):
 
 
 
-    # Associates the simple events:  Single component name to audio event connection
-    def _simpleEvent(self, event_message):
-        """Transforms the incoming event_message to the relevant audiocontroller message
-        
-        Arguments:
-            event_message {dict} -- Message dictionary as extracted from json payload of arduino message
-
-        Returns:
-            {dict} -- Dictionary of {'action': <str>, 'name': <str>, 'loop': <bool>} which can be passed to audiocontroller
-        """
-        audiocontroller_message = {'action': 'play', 'loop': False}
-        if self.panelState.panelActiveStatus != PanelActiveStatus.ON:
-            audiocontroller_message['name'] = 'systems_offline'
-            return audiocontroller_message
-
-        audiocontroller_message = {'action': 'play', 'loop': False}
-        if event_message['component'] == 'switch-32' and event_message['value'] == str(0):
-            audiocontroller_message['name'] = 'gauss_rifle'
-        
-
-        self._logger.debug('Audiocontroller Message is [%s]' % audiocontroller_message)
-        return audiocontroller_message
 
 
         

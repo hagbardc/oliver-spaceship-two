@@ -53,7 +53,7 @@ class AudioController:
         'sound' element actually exists in the file system 
         
         Arguments:
-            config {list} -- AudioController config (list of dicts)
+            config {dict} -- AudioController config (dictionary of various relevant keys)
 
         Returns True if the configuration is valid, False else
         """
@@ -64,8 +64,23 @@ class AudioController:
         pygame.mixer.init()
 
         self._audio_registry = {}
-        for item in config:
-            self.__register(item['name'], item['sound'], item['loopable'])
+
+        # The expected path for audio files, used if no path is provided in the 
+        # list of configured sounds
+        self._default_audio_path = None  
+        if 'default_audio_path' in config:
+            self._default_audio_path = config['default_audio_path']
+
+
+        # If there was a default audio path provided, we don't require
+        # a 'sound' key:  Just the name, which we use to build the path
+        # and file name
+        for item in config['audio_file_list']:
+            if self._default_audio_path:
+                sound = "%s/%s.wav" % (self._default_audio_path, item['name'])
+            else:
+                sound = item['sound']
+            self.__register(item['name'], sound, item['loopable'])
 
         # This is a list of messages queues from which we should be consuming messagess
         self._queue_list = message_queue_list
