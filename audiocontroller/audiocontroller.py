@@ -45,6 +45,20 @@ class AudioController:
 
         return True
 
+    @staticmethod
+    def isConfigValid(config):
+        """Takes in a configuration dictionary, and states whether it's valid for an AudioController
+
+        Checks that each element in the list has the proper keys, and that the 
+        'sound' element actually exists in the file system 
+        
+        Arguments:
+            config {list} -- AudioController config (list of dicts)
+
+        Returns True if the configuration is valid, False else
+        """
+        return False
+
     def __init__(self, config, message_queue_list):
         pygame.init()
         pygame.mixer.init()
