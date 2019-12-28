@@ -101,6 +101,7 @@ class MessageMapper(object):
         self.__eventMap['switch-27'] = self._switchEvent
         self.__eventMap['switch-28'] = self._switchEvent
         self.__eventMap['switch-29'] = self._switchEvent
+        self.__eventMap['switch-30'] = self._switchEvent
         self.__eventMap['switch-31'] = self._switchEvent
         self.__eventMap['switch-33'] = self._switchEvent
         self.__eventMap['switch-34'] = self._switchEvent
@@ -181,6 +182,10 @@ class MessageMapper(object):
             {dict} -- Dictionary of {'action': <str>, 'name': <str>, 'loop': <bool>} which can be passed to audiocontroller
         """
         audiocontroller_message = {'name': 'heat_warning', 'loop': True}
+
+        if self.panelState.panelActiveStatus != PanelActiveStatus.ON:
+            return {'action': 'play', 'loop': False, 'name': 'systems_offline'}
+
 
         if event_message['action'] != 'switch':
             return None
@@ -264,6 +269,10 @@ class MessageMapper(object):
         elif event_message['component'] == 'switch-27' and event_message['value'] == str(0):
             audiocontroller_message['name'] = 'c3_shutdown'
             
+        elif event_message['component'] == 'switch-30' and event_message['value'] == str(1):
+            audiocontroller_message['name'] = 'data_transfer_initiated'
+        elif event_message['component'] == 'switch-30' and event_message['value'] == str(0):
+            audiocontroller_message['name'] = 'data_transfer_complete'
         elif event_message['component'] == 'switch-31' and event_message['value'] == str(1):
             audiocontroller_message['name'] = 'satellite_established'
         elif event_message['component'] == 'switch-31' and event_message['value'] == str(0):
@@ -274,6 +283,12 @@ class MessageMapper(object):
             audiocontroller_message['name'] = 'single_fire'
         elif event_message['component'] == 'switch-51-53' and event_message['value'] == str(0):
             audiocontroller_message['name'] = 'group_fire'
+        elif event_message['component'] == 'switch-42-43' and event_message['value'] == str(2):
+            audiocontroller_message['name'] = 'light_amp_maximum'
+        elif event_message['component'] == 'switch-42-43' and event_message['value'] == str(1):
+            audiocontroller_message['name'] = 'light_amp_moderate'
+        elif event_message['component'] == 'switch-42-43' and event_message['value'] == str(0):
+            audiocontroller_message['name'] = 'light_amp_nominal'
         elif event_message['component'] == 'switch-22' and event_message['value'] == str(1):
             audiocontroller_message['name'] = 'camera_engaged'
         elif event_message['component'] == 'switch-22' and event_message['value'] == str(0):
